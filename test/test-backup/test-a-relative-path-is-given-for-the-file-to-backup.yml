@@ -1,0 +1,15 @@
+---
+- hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: WHEN asking to backup a relative path
+      backup: path='some/relative/path'
+      ignore_errors: yes
+      register: backup_result
+
+    - name: THEN backup should fail
+      assert:
+        that:
+          - backup_result|failed
+          - backup_result.msg == "Please provide an absolute path to backup"
+

@@ -1,0 +1,31 @@
+---
+- hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: GIVEN a file
+      shell: echo 'foo' > '{{ test_working_dir }}/popular-file'
+ 
+    - name: THAT has already been backed up
+      backup: path='{{ test_working_dir }}/popular-file'
+
+    - name: (register symlink info for later comparison)
+      command: ls -l '{{ test_working_dir }}/popular-file.ansible.bckp.latest'
+      register: old_symlink_info
+
+    - name: WHEN modifying this file
+      shell: echo 'bar' > '{{ test_working_dir }}/popular-file'
+
+    - name: AND asking for a new backup of it
+      backup: path='{{ test_working_dir }}/popular-file'
+      register: backup_result
+
+    - name: (register new symlink info for later comparison)
+      command: ls -l '{{ test_working_dir }}/popular-file.ansible.bckp.latest'
+      register: new_symlink_info
+
+    - name: THEN backup module notifies that something has changed
+      assert: that='backup_result|changed'
+
+    - name: AND symbolic link to backup has changed
+      assert: that='old_symlink_info.stdout != new_symlink_info.stdout'
+

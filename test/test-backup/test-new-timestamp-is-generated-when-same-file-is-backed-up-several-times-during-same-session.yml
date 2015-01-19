@@ -1,0 +1,31 @@
+---
+- hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: GIVEN a file
+      shell: echo 'foo' > '{{ test_working_dir }}/popular-file-2'
+ 
+    - name: THAT has already been backed up
+      backup: path='{{ test_working_dir }}/popular-file-2'
+      register: first_backup_result
+
+    - name: WHEN modifying this file
+      shell: echo 'bar' > '{{ test_working_dir }}/popular-file-2'
+
+    - name: AND asking for a new backup of it
+      backup: path='{{ test_working_dir }}/popular-file-2'
+      register: second_backup_result
+
+    - name: THEN a new timestamp has been generated for the second backup
+      assert: that='second_backup_result.backup_file == first_backup_result.backup_file + "-1"'
+
+    - name: WHEN modifying this file again
+      shell: echo 'baz' > '{{ test_working_dir }}/popular-file-2'
+
+    - name: AND asking for yet another backup
+      backup: path='{{ test_working_dir }}/popular-file-2'
+      register: third_backup_result
+
+    - name: THEN a new timestamp has been generated for the third backup
+      assert: that='third_backup_result.backup_file == first_backup_result.backup_file + "-2"'
+

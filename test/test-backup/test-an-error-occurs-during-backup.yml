@@ -1,0 +1,18 @@
+---
+- hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: (create some file)
+      shell: echo 'some content' > '{{ test_working_dir }}/some-file'
+
+    - name: GIVEN an error occurs during backup (here a FS error)
+      backup: path={{ test_working_dir }}/some-file backup_dir={{ test_working_dir }}/some-file
+      ignore_errors: yes
+      register: backup_result
+
+    - name: THEN the error details are returned
+      assert:
+        that:
+          - '"Traceback" in backup_result.msg'
+          - "'Not a directory: \\'{{ test_working_dir }}/some-file/' in backup_result.msg"
+

@@ -1,0 +1,31 @@
+---
+- hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: GIVEN a file
+      shell: echo 'irrelevant content' > '{{ test_working_dir }}/some-other-file'
+ 
+    - name: THAT has already been backed up
+      backup: path='{{ test_working_dir }}/some-other-file'
+
+    - name: (register symlink info for later comparison)
+      command: ls -l '{{ test_working_dir }}/some-other-file.ansible.bckp.latest'
+      register: old_symlink_info
+
+    - name: WHEN asking for a second backup of the same file
+      backup: path='{{ test_working_dir }}/some-other-file'
+      register: backup_result
+
+    - name: (register new symlink info for later comparison)
+      command: ls -l '{{ test_working_dir }}/some-other-file.ansible.bckp.latest'
+      register: new_symlink_info
+
+    - name: THEN backup module notifies that nothing has changed
+      assert:
+        that:
+          - not backup_result|changed
+          - backup_result.msg == "No change since previous backup"
+
+    - name: AND symbolic link to backup has indeed not changed
+      assert: that='old_symlink_info.stdout == new_symlink_info.stdout'
+

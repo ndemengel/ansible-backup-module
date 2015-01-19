@@ -1,0 +1,4 @@
+---
+- name: '[TEARDOWN] remove test working dir'
+  file: path='{{ test_working_dir }}' state=absent
+

@@ -1,0 +1,26 @@
+---
+- hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: GIVEN a file
+      shell: echo 'blah' > '{{ test_working_dir }}/afile'
+ 
+    - name: WHEN asking for a backup of this file, specifying both timestamp and backup dir
+      backup:
+        path: '{{ test_working_dir }}/afile'
+        backup_dir: '{{ test_working_dir }}/other-backups'
+        timestamp: 'now'
+      register: backup_result
+
+    - name: THEN backup module notifies that something has changed and returns path to backup
+      assert:
+        that:
+          - backup_result|changed
+          - '"{{ test_working_dir }}/other-backups{{ test_working_dir }}/afile.ansible.bckp.now" in backup_result.backup_file'
+
+    - name: AND a timestamped copy should have been created in backup dir
+      shell: test -f '{{ test_working_dir }}/other-backups{{ test_working_dir }}/afile.ansible.bckp.now'
+
+    - name: AND a symlink should have been made to this copy from the original file directory
+      shell: find '{{ test_working_dir }}' -maxdepth 1 -type l -exec ls -l "{}" \; | grep -E '{{ test_working_dir }}/afile.ansible.bckp.latest -> {{ test_working_dir }}/other-backups{{ test_working_dir }}/afile.ansible.bckp.now'
+

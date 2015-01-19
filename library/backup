@@ -1,0 +1,133 @@
+#!/usr/bin/python
+#!/Library/Frameworks/Python.framework/Versions/2.7/bin/python
+# -*- coding: utf-8 -*-
+
+DOCUMENTATION = '''
+---
+module: backup
+version_added: historical
+short_description: TODO
+description:
+  - TODO
+options: {}
+'''
+
+import os
+from shutil import copy2
+from stat import *
+import tarfile
+
+from ansible.module_utils.basic import *
+
+
+_BACKUP_SUFFIX = '.ansible.bckp'
+
+
+def _create_archive(src_dir, dest_file):
+    with tarfile.open(dest_file, 'w:gz') as ar:
+        ar.add(src_dir)
+
+def _create_or_replace_symlink(path, link):
+    if os.path.lexists(link):
+        if not os.path.islink(link):
+            raise Exception(link + " already exists and is not a link")
+        os.unlink(link)
+    os.symlink(path, link)
+
+def _ensure_dirs_exist(dirpath):
+    if not os.path.lexists(dirpath):
+        os.makedirs(dirpath)
+
+def _normalize_dirpath(dirpath):
+    return dirpath[:-1] if dirpath[-1] == '/' else dirpath
+
+
+class BackupModule(object):
+
+    def __init__(self, module):
+        self.module = module
+        args = module.params
+        self.orig_file = _normalize_dirpath(args['path'])
+        self.backup_dir = _normalize_dirpath(args['backup_dir'])
+        self.timestamp = args['timestamp']
+        self.parent_dir = os.path.dirname(self.orig_file)
+        self.orig_file_is_dir = os.path.isdir(self.orig_file)
+
+    def _check_for_early_return_reason(self):
+        if not os.path.isabs(self.orig_file):
+            return dict(failed=True, msg="Please provide an absolute path to backup")
+
+        try:
+            stats = os.stat(self.orig_file)
+            return None
+        except OSError, e:
+            # nothing to backup
+            if e.errno == errno.ENOENT:
+                return dict(skipped=True, msg="%s does not exist" % self.orig_file)
+            return dict(failed=True, msg=e.strerror)
+
+    def _create_backup_file_name(self):
+        ext = '.tar.gz' if self.orig_file_is_dir else ''
+        # full path of original file is reproduced as a sub-path of backup file
+        return '%s%s%s.%s%s' % (self.backup_dir, self.orig_file, _BACKUP_SUFFIX, self.timestamp, ext)
+
+    def _create_new_backup_file_name(self):
+        name = start_name = self._create_backup_file_name()
+        counter = 1
+        while os.path.lexists(name):
+            name = '%s-%d' % (start_name, counter)
+            counter += 1
+
+        return name
+
+    def _discard_backup_if_same(self, cur_backup, prev_backup):
+        md5 = self.module.md5
+        if os.path.lexists(prev_backup) and md5(cur_backup) == md5(prev_backup):
+            os.unlink(cur_backup)
+            return True
+        return False
+
+    def execute(self):
+        early_return = self._check_for_early_return_reason()
+        if early_return:
+            return early_return
+
+        backup_file = self._create_new_backup_file_name()
+
+        _ensure_dirs_exist(os.path.dirname(backup_file))
+
+        try:
+            if self.orig_file_is_dir:
+                _create_archive(self.orig_file, backup_file)
+            else:
+                shutil.copy2(self.orig_file, backup_file)
+
+            symlink = self.orig_file + _BACKUP_SUFFIX + '.latest'
+
+            if self._discard_backup_if_same(backup_file, symlink):
+                return dict(changed=False, msg="No change since previous backup")
+
+            _create_or_replace_symlink(backup_file, symlink)
+            return dict(changed=True, backup_file=backup_file)
+        except Exception, e:
+            return dict(failed=True, msg="Could not make backup of %s to %s: %s" % (self.orig_file, backup_file, e))
+
+
+def main():
+    global module
+    module = AnsibleModule(
+        argument_spec={
+            'backup_dir': { 'required': True, 'type': 'str' },
+            'path': { 'required': True, 'type': 'str' },
+            'timestamp': { 'required': True, 'type': 'str' }
+        },
+        supports_check_mode=False
+    )
+
+    result = BackupModule(module).execute()
+    module.exit_json(**result)
+
+
+if __name__ == '__main__':
+    main()
+

@@ -1,0 +1,11 @@
+---
+- hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: WHEN asking for backuping a non-existing file
+      backup: path='{{ test_working_dir }}/file-which-does-not-exist'
+      register: backup_result
+
+    - name: THEN backup should be skipped
+      assert: that='backup_result|skipped'
+

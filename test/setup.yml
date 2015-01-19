@@ -1,0 +1,11 @@
+---
+- name: '[SETUP] register the time'
+  shell: date +%Y%m%d%H%M%S
+  register: timestamp
+
+- name: '[SETUP] generate tmp name for test working dir'
+  set_fact: test_working_dir='/tmp/test-backup-{{ timestamp.stdout|trim }}'
+
+- name: '[SETUP] create test working directory'
+  file: path={{ test_working_dir }} state=directory
+

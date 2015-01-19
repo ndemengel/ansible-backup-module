@@ -1,0 +1,34 @@
+---
+- hosts: localhost
+  gather_facts: no
+  tasks:
+    - name: GIVEN a directory
+      shell: '{{ item }}'
+      with_items:
+        - mkdir -p '{{ test_working_dir }}/some-dir/subdir'
+        - echo 'content 1' > '{{ test_working_dir }}/some-dir/file1'
+        - echo 'content 2' > '{{ test_working_dir }}/some-dir/subdir/file2'
+ 
+    - name: WHEN asking for a backup of this directory
+      backup: path='{{ test_working_dir }}/some-dir'
+      register: backup_result
+
+    - name: THEN backup module notifies that something has changed
+      assert: that='backup_result|changed'
+
+    - name: AND a timestamped archive should have been created in backup dir
+      shell: ls -1r {{ deployment_backup_dir }}{{ test_working_dir }}/some-dir.ansible.bckp.20*.tar.gz | head -n1
+      register: latest_backup_query
+    - assert: that='"some-dir.ansible.bckp.20" in latest_backup_query.stdout|trim()'
+
+    - name: AND a symlink should have been made to this archive from the original directory parent
+      shell: find '{{ test_working_dir }}' -maxdepth 1 -type l -exec ls -l "{}" \; | grep -E '{{ test_working_dir }}/some-dir.ansible.bckp.latest -> {{ deployment_backup_dir }}{{ test_working_dir }}/some-dir.ansible.bckp.20.*'
+
+    - name: AND the archive should contain all files present in the original directory
+      command: tar tvf '{{     test_working_dir }}/some-dir.ansible.bckp.latest'
+      register: archive_listing
+    - assert:
+        that:
+          - "'{{ test_working_dir }}/some-dir/file1'[1:] in archive_listing.stdout"
+          - "'{{ test_working_dir }}/some-dir/subdir/file2'[1:] in archive_listing.stdout"
+

@@ -1,0 +1,12 @@
+---
+- include: ../setup.yml
+
+- name: '[SETUP] create test directories'
+  file: path={{ item }} state=directory
+  with_items:
+    - '{{ test_working_dir }}/backups'
+    - '{{ test_working_dir }}/other-backups'
+
+- name: '[SETUP] define deployment_backup_dir'
+  set_fact: deployment_backup_dir='{{ test_working_dir }}/backups'
+
