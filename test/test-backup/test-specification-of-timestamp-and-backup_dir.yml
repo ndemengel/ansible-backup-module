@@ -22,4 +22,4 @@
       shell: test -f '{{ test_working_dir }}/other-backups{{ test_working_dir }}/afile.ansible.bckp.now'
 
     - name: AND a symlink should have been made to this copy from the original file directory
-      shell: find '{{ test_working_dir }}' -maxdepth 1 -type l -printf "%p -> %l\n" | grep -E '{{ test_working_dir }}/afile.ansible.bckp.latest -> {{ test_working_dir }}/other-backups{{ test_working_dir }}/afile.ansible.bckp.now'
+      shell: find '{{ test_working_dir }}' -maxdepth 1 -type l -exec ls -l "{}" \; | grep -E '{{ test_working_dir }}/afile.ansible.bckp.latest -> {{ test_working_dir }}/other-backups{{ test_working_dir }}/afile.ansible.bckp.now'

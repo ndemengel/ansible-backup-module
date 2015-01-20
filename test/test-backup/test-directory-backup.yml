@@ -22,7 +22,7 @@
     - assert: that='"some-dir.ansible.bckp.20" in latest_backup_query.stdout|trim()'
 
     - name: AND a symlink should have been made to this archive from the original directory parent
-      shell: find '{{ test_working_dir }}' -maxdepth 1 -type l -printf "%p -> %l\n" | grep -E '{{ test_working_dir }}/some-dir.ansible.bckp.latest -> {{ deployment_backup_dir }}{{ test_working_dir }}/some-dir.ansible.bckp.20.*'
+      shell: find '{{ test_working_dir }}' -maxdepth 1 -type l -exec ls -l "{}" \; | grep -E '{{ test_working_dir }}/some-dir.ansible.bckp.latest -> {{ deployment_backup_dir }}{{ test_working_dir }}/some-dir.ansible.bckp.20.*'
 
     - name: AND the archive should contain all files present in the original directory
       command: tar tvf '{{ test_working_dir }}/some-dir.ansible.bckp.latest'
