@@ -11,5 +11,4 @@
       assert:
         that:
           - backup_result|failed
-          - backup_result.msg == "Please provide an absolute path to backup"
-
+          - "backup_result.msg == 'Please provide an absolute path to backup (given path: \"some/relative/path\")'"

@@ -7,7 +7,7 @@
       with_items:
         - echo 'content 1' > '{{ test_working_dir }}/file1'
         - echo 'content 2' > '{{ test_working_dir }}/file2'
- 
+
     - name: WHEN asking for backups of these files
       backup: path='{{ test_working_dir }}/{{ item }}'
       with_items: ['file1', 'file2']

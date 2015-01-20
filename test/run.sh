@@ -69,9 +69,9 @@ main() {
       printf "${test_summary}\n"
     fi
   done
-  
+
   printf "\n==== TEST summary ====${summary}\n"
-  
+
   return $result
 }
 

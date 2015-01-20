@@ -4,7 +4,7 @@
   tasks:
     - name: GIVEN a file
       shell: echo 'foo' > '{{ test_working_dir }}/popular-file'
- 
+
     - name: THAT has already been backed up
       backup: path='{{ test_working_dir }}/popular-file'
 

@@ -4,7 +4,7 @@
   tasks:
     - name: GIVEN a simple file
       shell: echo 'some content' > '{{ test_working_dir }}/some-file'
- 
+
     - name: AND deployment_backup_dir is undefined
       set_fact: deployment_backup_dir=
 
@@ -17,7 +17,7 @@
       assert:
         that:
           - backup_result|failed
-          - backup_result.msg == "Please define either backup_dir parameter or deployment_backup_dir variable"
+          - 'backup_result.msg == "Please define either backup_dir parameter or deployment_backup_dir variable"'
 
     - name: restore deployment_backup_dir
       set_fact: deployment_backup_dir='{{ test_working_dir }}/backups'

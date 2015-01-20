@@ -1,5 +1,4 @@
-#!/usr/bin/python
-#!/Library/Frameworks/Python.framework/Versions/2.7/bin/python
+#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
 DOCUMENTATION = '''
@@ -55,10 +54,10 @@ class BackupModule(object):
 
     def _check_for_early_return_reason(self):
         if not os.path.isabs(self.orig_file):
-            return dict(failed=True, msg="Please provide an absolute path to backup")
+            return dict(failed=True, msg="Please provide an absolute path to backup (given path: \"%s\")" % self.orig_file)
 
         try:
-            stats = os.stat(self.orig_file)
+            os.stat(self.orig_file)
             return None
         except OSError, e:
             # nothing to backup

@@ -4,7 +4,7 @@
   tasks:
     - name: GIVEN a file
       shell: echo 'irrelevant content' > '{{ test_working_dir }}/some-other-file'
- 
+
     - name: THAT has already been backed up
       backup: path='{{ test_working_dir }}/some-other-file'
 
@@ -24,7 +24,7 @@
       assert:
         that:
           - not backup_result|changed
-          - backup_result.msg == "No change since previous backup"
+          - 'backup_result.msg == "No change since previous backup"'
 
     - name: AND symbolic link to backup has indeed not changed
       assert: that='old_symlink_info.stdout == new_symlink_info.stdout'

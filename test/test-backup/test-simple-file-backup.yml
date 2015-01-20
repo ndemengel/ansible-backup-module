@@ -4,7 +4,7 @@
   tasks:
     - name: GIVEN a simple file
       shell: echo 'some content' > '{{ test_working_dir }}/some-file'
- 
+
     - name: WHEN asking for a backup of this file
       backup: path='{{ test_working_dir }}/some-file'
       register: backup_result
@@ -21,5 +21,5 @@
     - assert: that='"some-file.ansible.bckp.20" in latest_backup_query.stdout|trim()'
 
     - name: AND a symlink should have been made to this copy from the original file directory
-      shell: find '{{ test_working_dir }}' -maxdepth 1 -type l -exec ls -l "{}" \; | grep -E '{{ test_working_dir }}/some-file.ansible.bckp.latest -> {{ deployment_backup_dir }}{{ test_working_dir }}/some-file.ansible.bckp.20.*'
+      shell: find '{{ test_working_dir }}' -maxdepth 1 -type l -printf "%p -> %l\n" | grep -E '{{ test_working_dir }}/some-file.ansible.bckp.latest -> {{ deployment_backup_dir }}{{ test_working_dir }}/some-file.ansible.bckp.20.*'
 

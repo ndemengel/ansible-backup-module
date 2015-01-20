@@ -6,11 +6,11 @@ from ansible.runner.return_data import ReturnData
 
 
 def _generate_timestamp():
-    return time.strftime("%Y%m%d%H%M%S", time.localtime(time.time()))
+    return time.strftime("%Y%m%d%H%M%S")
 
 
 class ActionModule(object):
-    ''' Print statements during execution '''
+    """ Print statements during execution """
 
     TRANSFERS_FILES = False
 
@@ -31,7 +31,7 @@ class ActionModule(object):
         args = {}
         if complex_args:
             args.update(complex_args)
- 
+
         kv = utils.parse_kv(module_args)
         args.update(kv)
 
