@@ -4,11 +4,7 @@
 DOCUMENTATION = '''
 ---
 module: backup
-version_added: historical
-short_description: TODO
-description:
-  - TODO
-options: {}
+short_description: Create file backups
 '''
 
 import os

@@ -10,7 +10,6 @@ def _generate_timestamp():
 
 
 class ActionModule(object):
-    """ Print statements during execution """
 
     TRANSFERS_FILES = False
 
